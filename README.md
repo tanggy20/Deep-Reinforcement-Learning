@@ -76,11 +76,11 @@ python LunarLander_v2_DDQN.py
 ```text
 Input: state_dim (8)
 ↓
-Linear(8 → 48) + ReLU
+Linear(8 → 36) + ReLU
 ↓
-Linear(48 → 48) + ReLU
+Linear(36 → 36) + ReLU
 ↓
-Linear(48 → action_dim (4))
+Linear(36 → action_dim (4))
 ↓
 Output: Q-values for each action
 ```
@@ -139,6 +139,27 @@ swanlab.log({
 }, step=episode + 1)
 ```
 
+
+
+## 🏁 训练结果
+如下图是训练了600个episode后的训练结果曲线，可以看到reward基本收敛
+
+
+---
+
+
+## 🏁 验证结果
+用上述得到的最佳模型参数进行1000轮测试，在测试过程中将epsilon设为0，关闭搜索功能，如下图是验证reward曲线：
+
+
+
+
+最终1000episode的平均奖励为：261.368
+
+
+---
+
+
 ---
 
 ## 📎 参考
@@ -149,13 +170,15 @@ swanlab.log({
 
 ---
 
-## 🏁 最佳实践建议
+## 🏁 实践建议
 
 * 根据建模问题，合理调整Q网络层数与维度
 * 合理设置 epsilon 衰减，避免探索过早停止，也需要避免后期epsilon过大，奖励一直波动
 * 使用多次评估平均 reward 作为保存模型依据
 
 ---
+
+
 
 
 
