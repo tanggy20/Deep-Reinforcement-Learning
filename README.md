@@ -111,15 +111,19 @@ agent.Q_eval.load_state_dict(torch.load('best_model.pth'))
 ```
 ## 🏆 实验结果
 
-通过我的测试，针对这个问题不需要过于复杂的网络结构，反而较小的网络能够达到很好的效果。经过1000个回合的训练，智能体的**平均奖励**如下：
+通过我的测试，针对这个问题不需要过于复杂的网络结构，反而较小的网络能够达到很好的效果。经过600个回合的训练，智能体的具体训练结果如下：
 
 ### 训练结果 📈
+![1746682822719](https://github.com/user-attachments/assets/57d13593-d68e-4dcc-a597-f55435e36b91)
 
-- **1000 episodes** 的平均奖励为： **486.783**
+
+
   
-### 训练过程图 🎯
+### 验证结果 🎯
+- **1000 episodes** 的平均奖励为： **486.783**
 
-以下是训练过程中智能体的表现：
+以下是验证过程中智能体的表现：
 
-![image](https://github.com/user-attachments/assets/9bcf0b26-95b6-4ad2-adf6-a58e0f3eaa87)
+![image](https://github.com/user-attachments/assets/2c934cad-c251-4d06-a8b7-6d7071f145c5)
+
 
