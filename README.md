@@ -14,9 +14,11 @@ REINFORCE是一种基于策略梯度（Policy Gradient）的强化学习算法�
 
 我们的目标是最大化智能体在环境中的总奖励（即累积奖励）。我们可以通过优化策略来最大化目标函数：
 
-$J(\theta) = \mathbb{E}_S [V_\pi(S)]$
+$J(\theta) = \mathbb{E_S} [V_\pi(S)]$
 
- $\theta$ 是策略网络的参数，$V_\pi(S)$ 是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
+
+ $\theta$ 是策略网络的参数，![Uploading 1746928521253.png…]()
+是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
 
 $\nabla J(\theta) = \mathbb{E} \left[ \nabla_\theta \log \pi_\theta(A|S) Q_\pi(S,A) \right]$
 
@@ -27,7 +29,7 @@ $$
 g(s, a; \theta) =  Q_{\pi}(s, a)  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)
 $$
 
-同时用实际观测的回报$R$来近似动作价值函数$Q_{\pi}(s, a)$，于是就可以进一步近似写为：
+同时用实际观测的回报$R$来近似动作价值函数$Q_\pi(s, a)$，于是就可以进一步近似写为：
 
 $$
 \tilde{g}(s, a; \theta) =  R  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)
