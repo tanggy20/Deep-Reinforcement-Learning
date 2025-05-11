@@ -16,23 +16,19 @@ REINFORCE是一种基于策略梯度（Policy Gradient）的强化学习算法�
 
 $J(\theta) = \mathbb{E_S} [V_\pi(S)]$
 
-
- $\theta$ 是策略网络的参数，是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
+ $\theta$ 是策略网络的参数 $V_\pi(S)$是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
 
 $\nabla J(\theta) = \mathbb{E} \left[ \nabla_\theta \log \pi_\theta(A|S) Q_\pi(S,A) \right]$
 
-其中，$\pi_\theta(A|S)$ 是随机变量形式的策略，梯度随机变量形式表达需要对$S$与$A$求期望。通过这个梯度，我们可以更新策略，使得执行更高回报的动作的概率更高。
+$\pi_\theta(A|S)$ 是随机变量形式的策略，梯度随机变量形式表达需要对 $S$ 与 $A$ 求期望。通过这个梯度，我们可以更新策略，使得执行更高回报的动作的概率更高。
 
-但是因为期望形式不易计算，实际我们使用**蒙特卡洛近似**，从环境中观测一个状态$s$,根据策略网络随机抽样得到动作$a$。于是策略梯度可近似写为：
-$$
-g(s, a; \theta) =  Q_{\pi}(s, a)  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)
-$$
+但是因为期望形式不易计算，实际我们使用**蒙特卡洛近似**，从环境中观测一个状态 $s$ ,根据策略网络随机抽样得到动作 $a$ 。于是策略梯度可近似写为: 
 
-同时用实际观测的回报$R$来近似动作价值函数$Q_\pi(s, a)$，于是就可以进一步近似写为：
+$g(s, a; \theta) =  Q_{\pi}(s, a)  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)$
 
-$$
-\tilde{g}(s, a; \theta) =  R  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)
-$$
+同时用实际观测的回报 $R$ 来近似动作价值函数 $Q_\pi(s, a)$ ，于是就可以进一步近似写为:  
+
+$\tilde{g}(s, a; \theta) =  R  \cdot \nabla_{\theta} \ln \pi(a | s; \theta)$
 
 
 ### 基线方法
@@ -45,7 +41,7 @@ REINFORCE算法的缺点是方差较大，因为回报的估计往往不准确�
 
 $J(\theta) = \mathbb{E} \left[ \nabla_\theta \log \pi_\theta(a|s) (R - V_\pi(s)) \right]$
 
-其中，$V_\pi(s)$ 是模型的状态价值函数，我们用神经网络$v_\pi(s;w)$ 对状态$s$的价值进行估计。$R - V_\pi(s)$ 叫做 **优势函数**（Advantage Function），它表示了实际回报与期望回报之间的差异。通过使用优势函数，算法能够更加稳定地更新策略，减少回报的方差。
+$V_\pi(s)$ 是模型的状态价值函数，我们用神经网络 $v_\pi(s;w)$ 对状态 $s$ 的价值进行估计。 $R - V_\pi(s)$  叫做 **优势函数**（Advantage Function），它表示了实际回报与期望回报之间的差异。通过使用优势函数，算法能够更加稳定地更新策略，减少回报的方差。
 
 基线网络的作用是通过拟合状态值函数来减少策略梯度的方差，避免了高方差问题，使得学习过程更加稳定。
 
@@ -64,7 +60,7 @@ https://blog.csdn.net/qq_40206371/article/details/125012106
 
 $$ E(s') - E(s) = (E_g(s') + E_m(s')) - (E_g(s) + E_m(s)) $$
 
-这里，$E(s)$ 表示智能体在某状态下的总能量，由势能（$E_g$）和动能（$E_m$）组成。势能与小车的高度相关，而动能与小车的速度相关。通过计算高度和速度的变化，我们可以为智能体提供更多的反馈信号。
+$E(s)$ 表示智能体在某状态下的总能量，由势能（ $E_g$ ）和动能（ $E_m$ ）组成。势能与小车的高度相关，而动能与小车的速度相关。通过计算高度和速度的变化，我们可以为智能体提供更多的反馈信号。
 
 ### 设计奖励塑形函数
 
@@ -99,14 +95,19 @@ kinetic_change：表示小车的动能变化。速度增加时奖励增加，速
 更多细节详情可参看：
 https://zhuanlan.zhihu.com/p/378129617
 
+
 ## 项目结构 🗂️
 
+```
+
 .
-├── Mountaincar_REINFORCE_baseline.py  # 主训练脚本
-├── 0510_Mountaincar_test.py           # 测试验证脚本
-├── best_policy_net.pth                # 最优策略网络用于选择动作
-├── best_baseline_net.pth              # 最优基线网络用于计算策略价值
+├── Mountaincar\_REINFORCE\_baseline.py  # 主训练脚本
+├── 0510\_Mountaincar\_test.py           # 测试验证脚本
+├── best\_policy\_net.pth                # 最优策略网络用于选择动作
+├── best\_baseline\_net.pth              # 最优基线网络用于计算策略价值
 └── README.md                          # 项目说明
+
+```
 
 
 
