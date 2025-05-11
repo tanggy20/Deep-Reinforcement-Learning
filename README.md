@@ -17,8 +17,7 @@ REINFORCE是一种基于策略梯度（Policy Gradient）的强化学习算法�
 $J(\theta) = \mathbb{E_S} [V_\pi(S)]$
 
 
- $\theta$ 是策略网络的参数，![Uploading 1746928521253.png…]()
-是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
+ $\theta$ 是策略网络的参数，是随机变量形式的状态价值函数。REINFORCE方法通过计算策略梯度来更新参数：
 
 $\nabla J(\theta) = \mathbb{E} \left[ \nabla_\theta \log \pi_\theta(A|S) Q_\pi(S,A) \right]$
 
