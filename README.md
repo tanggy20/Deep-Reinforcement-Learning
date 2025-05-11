@@ -171,25 +171,29 @@ reward += (get_height(x_next) - get_height(x_now))*9.8 + (v_next**2 - v_now**2) 
 #### 都进行1000个回合的训练，同时去除了环境中200步截断的限制
 #### 1.没有加额外奖励的训练曲线：
 
-![alt text](1746893443824.png)
+![image](https://github.com/user-attachments/assets/325cd3c2-e46a-4e93-9a72-62dcdf598d74)
+
 
 #### 2.加额外奖励的训练曲线：
 
-![alt text](1746893486346.png)
+![image](https://github.com/user-attachments/assets/075ea375-ce89-4b70-a70b-fe281eef2f27)
+
 
 ### 验证结果📸
 
 #### 同样进行1000个回合的验证
 
-#### 1.没有加额外奖励的训练曲线：
+#### 1.没有加额外奖励的奖励曲线：
 
-![alt text](image.png)
+![image](https://github.com/user-attachments/assets/47ef2cdc-f36c-46f8-9121-c606d220b4b4)
+
 
 平均奖励为：-2618.676
 
-#### 2.加额外奖励的训练曲线：
+#### 2.加额外奖励的奖励曲线：
 
-![alt text](image.png)
+![image](https://github.com/user-attachments/assets/6c92a944-3225-4a08-863b-57867a86eab7)
+
 
 平均奖励为：-2927.607
 
