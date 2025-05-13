@@ -43,14 +43,13 @@ pip install gym torch numpy matplotlib swanlab tqdm
 * **Critic**：评估当前动作的价值，使用 Q-函数来评估。
 
 ### DDPG 数学原理 ✨
-
 #### 1. 确定性策略梯度 (DPG)
-
 确定性策略（Deterministic Policy）是与随机策略（Stochastic Policy）相对的。在随机策略中，给定一个状态，采取的动作是基于一个概率分布。而在确定性策略中，给定一个状态，策略决定了一个具体的动作。因此，确定性策略梯度的优化目标可以通过如下公式来描述：
 
 $$
-\nabla_{\theta} J(\pi_{\theta}) = \mathbb{E}_{s \sim \rho_{\pi}} \left[ \nabla_{\theta} \pi_{\theta}(s) \nabla_a Q_{\pi}(s, a) |_{a=\pi_{\theta}(s)} \right]
+\nabla_{\theta} J(\pi_{\theta})= \mathbb{E_{s\sim \rho_{\pi}}}[\nabla_{\theta} \pi_{\theta}(s)\nabla_a Q_{\pi}(s, a)|_ {a=\pi_{\theta}(s)} ]
 $$
+
 
 其中， $\pi_{\theta}(s)$ 是给定状态 $s$ 时的确定性策略， $Q_{\pi}(s, a)$ 是在状态 $s$ 和动作 $a$ 下的 Q 值。
 
@@ -82,13 +81,13 @@ $$
 * **Critic 网络损失函数**：与 DQN 类似，Critic 网络使用均方误差（MSE）损失函数来更新 Q 值：
 
 $$
-J(w) = \frac{1}{m} \sum_{j=1}^m \left( y_j - Q_{\phi}(S_j, A_j, w) \right)^2
+J(w) = \frac{1}{m} \sum_{j=1}^m \left( y_j - Q_{\phi}(s_j, a_j, w) \right)^2
 $$
 
 * **Actor 网络损失函数**：由于 DDPG 使用的是确定性策略，Actor 网络的损失函数可以通过以下公式计算：
 
 $$
-\nabla J(\theta) = -\frac{1}{m} \sum_{j=1}^m Q_{\pi}(S_i, A_i, w) \nabla_{\theta} \pi_{\theta}(S_i)
+ J(\theta) = -\frac{1}{m} \sum_{i=1}^m Q_{\pi}(s_i, a_i, w) 
 $$
 
 ### 3. 从 DPG 到 DDPG 的扩展
@@ -114,36 +113,23 @@ DDPG 通过引入 **目标网络** 和 **经验回放** 来稳定训练过程，
 
 ## 实验结果 📊
 
-### 训练结果
+### 训练结果 📈
 
-在训练过程中，智能体逐渐学习如何控制摆锤，并能在环境中获得更高的奖励。以下是训练过程中获得的奖励曲线：
+在经过 **1000** 回合的训练后，智能体逐渐学习如何控制摆锤，获得更高的奖励。训练过程中的奖励曲线如下所示：
 
-![Training Rewards](https://github.com/user-attachments/assets/630b5c0d-dd37-4596-98bd-26a572fc0fee)
+![训练奖励曲线](https://github.com/user-attachments/assets/51f0d94f-a1d9-4b9d-b837-c83c9e90d4bf)
+
+可以看到，智能体逐步学习如何优化其策略，并在训练过程中表现出明显的收敛趋势。
 
 ### 测试结果 🎯
 
-在训练完成后，我们对智能体进行了 1000 回合的评估，平均奖励为： **491.922**。
+训练完成后，我们使用最佳策略对智能体进行了 **1000** 回合的评估，并记录了平均奖励。以下是测试过程中获得的奖励曲线：
 
-![Evaluation Rewards](https://github.com/user-attachments/assets/d01a4d8a-e5e8-4013-a9d0-799a6952f66e)
+![测试奖励曲线](https://github.com/user-attachments/assets/43fcb613-11be-412c-829e-ea7cee89713c)
 
-## 保存和加载模型 💾
+经过评估，智能体在测试过程中获得的平均奖励为： **-145.25**。
 
-训练过程中，当智能体达到新的最佳平均奖励时，模型会被保存至本地文件。你可以使用以下命令加载模型：
-
-```python
-actor_model = torch.load('best_actor.pth')
-critic_model = torch.load('best_critic.pth')
-```
-
-## 运行脚本 🎬
-
-在终端运行以下命令启动训练：
-
-```bash
-python main.py
-```
-
-
+尽管智能体能够在测试过程中稳定运行，但仍然存在改进的空间，智能体对初值比较敏感。后续工作可能集中在调整网络结构或采用不同的训练策略。
 
 如果您有任何问题或建议，请提交 issue 或直接联系我！😊
 
