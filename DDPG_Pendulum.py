@@ -19,6 +19,27 @@ torch.manual_seed(seed)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+class OUNoise:
+    def __init__(self, action_dim, mu=0.0, sigma=0.2, theta=0.15, dt=1e-2):
+        self.mu = mu  # 均值
+        self.sigma = sigma  # 噪声强度
+        self.theta = theta  # 衰减因子
+        self.dt = dt  # 时间步长
+        self.action_dim = action_dim  # 动作维度
+        self.state = np.ones(action_dim) * mu  # 初始状态
+        self.reset()
+
+    def reset(self):
+        """重置噪声状态"""
+        self.state = np.ones(self.action_dim) * self.mu
+
+    def noise(self):
+        """生成噪声"""
+        dx = self.theta * (self.mu - self.state) * self.dt + self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.action_dim)
+        self.state = self.state + dx
+        return self.state
+
+
 class Critic(nn.Module):
     def __init__(self, state_dim, action_dim, fc1_dim, fc2_dim):
         super(Critic, self).__init__()
@@ -37,14 +58,12 @@ class Critic(nn.Module):
         return x
 
 class Actor(nn.Module):
-    def __init__(self, state_dim, action_dim, fc1_dim, fc2_dim,is_train=True):
+    def __init__(self, state_dim, action_dim, fc1_dim, fc2_dim):
         super(Actor, self).__init__()
         self.fc1 = nn.Linear(state_dim, fc1_dim)
         self.relu= nn.ReLU()
         self.fc2 = nn.Linear(fc1_dim, fc2_dim)
         self.fc3 = nn.Linear(fc2_dim, action_dim)
-        self.noisy =torch.distributions.Normal(0, 0.2)
-        self.is_train = is_train
     
     def forward(self, state):
         x = self.fc1(state)
@@ -52,41 +71,30 @@ class Actor(nn.Module):
         x = self.fc2(x)
         x = self.relu(x)
         x = torch.tanh(self.fc3(x))
-        return x
+        return x*2
     
-    def select_action(self, epsilon, state):
-        state = torch.FloatTensor(state).unsqueeze(0).to(device)
-        with torch.no_grad():
-            action = self.forward(state).squeeze()
-            if self.is_train:
-                noise = epsilon*self.noisy.sample(action.size()).to(device)
-                action = action + noise
-        
-        return 2*torch.clip(action, -1, 1)
 
 
 class DDPGAgent:
-    def __init__(self, state_dim, action_dim, fc1_dim=64, fc2_dim=64, lr=1e-3, gamma=0.99, tau=0.005, 
-                 epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=1e-5, batch_size=128, memory_size=100000):
+    def __init__(self, state_dim, action_dim, fc1_dim=64, fc2_dim=64, lr=1e-3, gamma=0.99, tau=0.005, batch_size=128, memory_size=100000):
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.lr = lr
         self.gamma = gamma
         self.tau = tau
-        self.epsilon_start = epsilon_start
-        self.epsilon_end = epsilon_end
-        self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
         self.memory_size = memory_size
         self.memory = deque(maxlen=memory_size)
-        self.epsilon = epsilon_start
         self.step_count = 0 
         self.update_freq = 10
         self.best_avg_reward = -np.inf
+        self.noise = OUNoise(action_dim)
+        
+    
 
         # Initialize actor and critic networks
         self.actor_eval = Actor(state_dim, action_dim, fc1_dim, fc2_dim).to(device)
-        self.actor_target = Actor(state_dim, action_dim, fc1_dim, fc2_dim, is_train=False).to(device)
+        self.actor_target = Actor(state_dim, action_dim, fc1_dim, fc2_dim).to(device)
         self.critic_eval = Critic(state_dim, action_dim, fc1_dim, fc2_dim).to(device)
         self.critic_target = Critic(state_dim, action_dim, fc1_dim, fc2_dim).to(device)
 
@@ -104,9 +112,6 @@ class DDPGAgent:
         for target_param, local_param in zip(self.critic_target.parameters(),self.critic_eval.parameters()):
             target_param.data.copy_(self.tau * local_param.data + (1.0 - self.tau) * target_param.data)
     
-    def decrement_epsilon(self):   
-        self.epsilon = max(self.epsilon_end, self.epsilon - self.epsilon_decay)
-    
     def store_transition(self, transition):
         self.memory.append(transition)
     
@@ -115,9 +120,14 @@ class DDPGAgent:
         states, actions, rewards, next_states, dones = zip(*batch)
         return np.array(states), np.array(actions), np.array(rewards), np.array(next_states), np.array(dones)
     
-    def select_action(self, state):
-        action = self.actor_eval.select_action(self.epsilon, state)
-        return action.cpu().numpy().reshape(self.action_dim)
+    def select_action(self, state, is_train):
+        state = torch.FloatTensor(state).to(device)
+        action = self.actor_eval(state)
+        action = action.cpu().detach().numpy()
+        if is_train:
+            action += self.noise.noise()
+        action = np.clip(action, -2, 2)
+        return action 
     
     def train(self):
         if len(self.memory) < self.batch_size:
@@ -148,17 +158,14 @@ class DDPGAgent:
 
         if self.step_count % self.update_freq == 0:
             self.update_network_parameters()
-        self.decrement_epsilon()
-
+        self.noise.sigma *=0.995
     def eval(self, env):
-        original_epsilon = self.epsilon
-        self.epsilon = 0.0
         total_rewards = []
         for _ in range(10):
             state, _ = env.reset()
             total_reward =0 
             while True:
-                action = self.select_action(state)
+                action = self.select_action(state,False)
                 next_state, reward, terminated, truncated, _= env.step(action)
                 total_reward += reward
                 done = terminated or truncated
@@ -166,7 +173,6 @@ class DDPGAgent:
                 if done:
                     break
             total_rewards.append(total_reward)
-        self.epsilon = original_epsilon
         return np.mean(total_rewards)
             
 
@@ -189,13 +195,9 @@ if __name__ == "__main__":
     lr = 1e-3
     gamma = 0.99
     tau = 0.005
-    epsilon_start = 1.0
-    epsilon_end = 0.01
-    epsilon_decay = 1e-5
     batch_size = 32
     memory_size = 100000
-    agent = DDPGAgent(state_dim, action_dim, fc1_dim, fc2_dim, lr, gamma, tau, epsilon_start, epsilon_end, 
-                      epsilon_decay, batch_size, memory_size)
+    agent = DDPGAgent(state_dim, action_dim, fc1_dim, fc2_dim, lr, gamma, tau, batch_size, memory_size)
     
     swanlab.init(
         project="Pendulum-v1",
@@ -208,9 +210,6 @@ if __name__ == "__main__":
             "lr": lr,
             "gamma": gamma,
             "tau": tau,
-            "epsilon_start": epsilon_start,
-            "epsilon_end": epsilon_end,
-            "epsilon_decay": epsilon_decay,
             "batch_size": batch_size,
             "memory_size": memory_size,
             "episode": 1000
@@ -222,7 +221,7 @@ if __name__ == "__main__":
         total_reward = 0
         steps = 0
         while True:
-            action = agent.select_action(state)
+            action = agent.select_action(state,True)
             next_state, reward, terminated, truncated, _= env.step(action)
             total_reward += reward
             done = terminated or truncated
@@ -247,7 +246,6 @@ if __name__ == "__main__":
                 "step_train":steps,
                 "train_reward": total_reward,
                 "eval_best_avg_reward": agent.best_avg_reward,
-                "epsilon": agent.epsilon,
             },
             step=episode+1,
         )
